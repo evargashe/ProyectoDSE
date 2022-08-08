@@ -7,16 +7,12 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['myname'] = "Edwar Vargas"
-        context['product_list']= Product.objects.all()
+        context['product_list']= Product.objects.all().order_by('-id')
         context['allcategories']= Category.objects.all()
         return context
 
 
-class AboutView(TemplateView):
-    template_name="about.html"
 
-class ContactView(TemplateView):
-    template_name = "contactus.html"
 
 
 class AllProductsView(TemplateView):
@@ -28,3 +24,21 @@ class AllProductsView(TemplateView):
         return context
 
 
+class ProductDetailView(TemplateView):
+    template_name = "productdetail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        url_slug = self.kwargs['slug']
+        product = Product.objects.get(slug=url_slug)
+        product.view_count += 1
+        product.save()
+        context['product'] = product
+        return context
+
+
+class AboutView(TemplateView):
+    template_name="about.html"
+
+class ContactView(TemplateView):
+    template_name = "contactus.html"
