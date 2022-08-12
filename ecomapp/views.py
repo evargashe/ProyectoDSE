@@ -1,5 +1,8 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.views.generic import View, TemplateView
+from django.shortcuts import redirect
+
+
 from .models import *
 # Create your views here.
 class HomeView(TemplateView):
@@ -68,6 +71,40 @@ class AddToCartView(TemplateView):
             cart_obj.total += product_obj.selling_price
             cart_obj.save()
         return context
+
+
+class ManageCartView(View):
+    def get(self, request, *args, **kwargs):
+        cp_id = self.kwargs["cp_id"]
+        action = request.GET.get("action")
+        cp_obj = CartProduct.objects.get(id=cp_id)
+        cart_obj = cp_obj.cart
+
+        if action == "incrementarproducto":
+            cp_obj.quantity += 1
+            cp_obj.subtotal += cp_obj.rate
+            cp_obj.save()
+            cart_obj.total += cp_obj.rate
+            cart_obj.save()
+        elif action == "reducirproducto":
+            cp_obj.quantity -= 1
+            cp_obj.subtotal -= cp_obj.rate
+            cp_obj.save()
+            cart_obj.total -= cp_obj.rate
+            cart_obj.save()
+            if cp_obj.quantity == 0:
+                cp_obj.delete()
+
+        elif action == "eliminar":
+            cart_obj.total -= cp_obj.subtotal
+            cart_obj.save()
+            cp_obj.delete()
+        else:
+            pass
+        return redirect("ecomapp:mycart")
+
+
+
 
 class MyCartView(TemplateView):
     template_name="mycart.html"
